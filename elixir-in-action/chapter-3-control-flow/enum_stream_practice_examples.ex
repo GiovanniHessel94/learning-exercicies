@@ -6,6 +6,6 @@ defmodule EnumStreamPracticeExample do
   def large_lines!(path) do
     File.stream!(path)
     |> Stream.map(&String.trim_trailing(&1, "\n"))
-    |> Enum.filter(&String.length(&1) > 80)
+    |> Enum.filter(&(String.length(&1) > 80))
   end
 end

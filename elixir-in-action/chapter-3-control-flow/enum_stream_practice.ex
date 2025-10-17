@@ -14,7 +14,7 @@ defmodule EnumStreamPractice do
     path
     |> File.stream!()
     |> Stream.map(&String.trim_trailing(&1, "\n"))
-    |> Enum.filter(&String.length(&1) > 80)
+    |> Enum.filter(&(String.length(&1) > 80))
   end
 
   @doc """
@@ -35,7 +35,7 @@ defmodule EnumStreamPractice do
   def longest_line_length!(path \\ @path) do
     path
     |> File.stream!()
-    |> Stream.map(& &1 |> String.trim_trailing("\n") |> String.length())
+    |> Stream.map(&(&1 |> String.trim_trailing("\n") |> String.length()))
     |> Enum.max()
   end
 
@@ -57,10 +57,9 @@ defmodule EnumStreamPractice do
   def words_per_line!(path \\ @path, split_characters \\ @split_characters) do
     path
     |> File.stream!()
-    |> Stream.map(& &1 |> String.trim_trailing("\n") |> String.split(split_characters))
+    |> Stream.map(&(&1 |> String.trim_trailing("\n") |> String.split(split_characters)))
     |> Enum.map(&Enum.count(&1))
   end
-
 
   @doc """
   Returns the path to the `file.csv` file.
