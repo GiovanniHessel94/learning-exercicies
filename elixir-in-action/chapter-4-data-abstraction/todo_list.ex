@@ -130,6 +130,55 @@ defmodule TodoList do
   def delete_entry(%__MODULE__{} = todo_list, _entry_id), do: todo_list
 end
 
+defmodule TodoList.CsvImporter do
+  @moduledoc """
+  Exercises code from the `Chapter 4 - Data Abstraction` of the `Elixir In Action` book.
+  """
+
+  alias TodoList
+
+  @path "./todo.csv"
+
+  @doc """
+  Imports a todo list from a CSV file.
+
+  Entries are expected to be in the format `date,title`, where `date` is a valid ISO 8601 date and `title` is a string with no commas.
+
+  ## Parameters
+
+  - `path`: The path to the CSV file. Defaults to `./todo.csv`.
+
+  ## Examples
+
+  iex> TodoList.CsvImporter.import!()
+  %TodoList{next_id: 13, entries: %{1 => %{id: 1, date: ~D[2023-12-19], title: "Dentist"}, ...}}
+
+  iex> TodoList.CsvImporter.import!("./path-to-no-file.csv")
+  ** (File.Error) could not stream "": no such file or directory
+      (elixir 1.18.4) lib/file/stream.ex:100: anonymous fn/3 in Enumerable.File.Stream.reduce/3
+      (elixir 1.18.4) lib/stream.ex:1557: anonymous fn/5 in Stream.resource/3
+      (elixir 1.18.4) lib/stream.ex:1773: Enumerable.Stream.do_each/4
+      (elixir 1.18.4) lib/enum.ex:1574: Enum.reduce_into_protocol/3
+      (elixir 1.18.4) lib/enum.ex:1558: Enum.into_protocol/2
+      iex:5: (file)
+
+  """
+  @spec import!(String.t()) :: TodoList.t()
+  def import!(path \\ @path) do
+    path
+    |> File.stream!()
+    |> Stream.map(&build_entry/1)
+    |> Enum.into(TodoList.new())
+  end
+
+  defp build_entry(line) when is_binary(line) do
+    line
+    |> String.trim_trailing("\n")
+    |> String.split(",")
+    |> then(fn [date, title] -> %{date: Date.from_iso8601!(date), title: title} end)
+  end
+end
+
 defimpl Collectable, for: TodoList do
   def into(term), do: {term, &into_callback/2}
 
