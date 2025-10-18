@@ -24,8 +24,8 @@ defmodule TodoList do
 
   ## Examples
 
-  iex> TodoList.new()
-  %TodoList{next_id: 1, entries: %{}}
+      iex> TodoList.new()
+      %TodoList{next_id: 1, entries: %{}}
 
   """
   @spec new() :: t()
@@ -41,11 +41,11 @@ defmodule TodoList do
 
   ## Examples
 
-  iex> todo_list = TodoList.new()
-  %TodoList{next_id: 1, entries: %{}}
+      iex> todo_list = TodoList.new()
+      %TodoList{next_id: 1, entries: %{}}
 
-  iex> TodoList.add_entry(todo_list, %{date: ~D[2025-12-20], title: "Dentist"})
-  %TodoList{next_id: 2, entries: %{1 => %{id: 1, date: ~D[2025-12-20], title: "Dentist"}}}
+      iex> TodoList.add_entry(todo_list, %{date: ~D[2025-12-20], title: "Dentist"})
+      %TodoList{next_id: 2, entries: %{1 => %{id: 1, date: ~D[2025-12-20], title: "Dentist"}}}
 
   """
   @spec add_entry(t(), entry_params_t()) :: t()
@@ -66,11 +66,11 @@ defmodule TodoList do
 
   ## Examples
 
-  iex> todo_list = %TodoList{next_id: 3, entries: %{1 => %{id: 1, date: ~D[2025-12-20], title: "Dentist"}, 2 => %{id: 2, date: ~D[2025-12-22], title: "Shopping"}}}
-  %TodoList{next_id: 3, entries: %{1 => %{id: 1, date: ~D[2025-12-20], title: "Dentist"}, 2 => %{id: 2, date: ~D[2025-12-22], title: "Shopping"}}}
+      iex> todo_list = %TodoList{next_id: 3, entries: %{1 => %{id: 1, date: ~D[2025-12-20], title: "Dentist"}, 2 => %{id: 2, date: ~D[2025-12-22], title: "Shopping"}}}
+      %TodoList{next_id: 3, entries: %{1 => %{id: 1, date: ~D[2025-12-20], title: "Dentist"}, 2 => %{id: 2, date: ~D[2025-12-22], title: "Shopping"}}}
 
-  iex> TodoList.entries(todo_list, ~D[2025-12-22])
-  [%{id: 2, date: ~D[2025-12-22], title: "Shopping"}]
+      iex> TodoList.entries(todo_list, ~D[2025-12-22])
+      [%{id: 2, date: ~D[2025-12-22], title: "Shopping"}]
 
   """
   @spec entries(t(), Date.t()) :: list(entry_t())
@@ -91,11 +91,11 @@ defmodule TodoList do
 
   ## Examples
 
-  iex> todo_list = %TodoList{next_id: 3, entries: %{1 => %{id: 1, date: ~D[2025-12-20], title: "Dentist"}, 2 => %{id: 2, date: ~D[2025-12-22], title: "Shopping"}}}
-  %TodoList{next_id: 3, entries: %{1 => %{id: 1, date: ~D[2025-12-20], title: "Dentist"}, 2 => %{id: 2, date: ~D[2025-12-22], title: "Shopping"}}}
+      iex> todo_list = %TodoList{next_id: 3, entries: %{1 => %{id: 1, date: ~D[2025-12-20], title: "Dentist"}, 2 => %{id: 2, date: ~D[2025-12-22], title: "Shopping"}}}
+      %TodoList{next_id: 3, entries: %{1 => %{id: 1, date: ~D[2025-12-20], title: "Dentist"}, 2 => %{id: 2, date: ~D[2025-12-22], title: "Shopping"}}}
 
-  iex> TodoList.update_entry(todo_list, 1, fn entry -> %{entry | date: ~D[2025-12-21]} end)
-  %TodoList{next_id: 3, entries: %{1 => %{id: 1, date: ~D[2025-12-21], title: "Dentist"}, 2 => %{id: 2, date: ~D[2025-12-22], title: "Shopping"}}}
+      iex> TodoList.update_entry(todo_list, 1, fn entry -> %{entry | date: ~D[2025-12-21]} end)
+      %TodoList{next_id: 3, entries: %{1 => %{id: 1, date: ~D[2025-12-21], title: "Dentist"}, 2 => %{id: 2, date: ~D[2025-12-22], title: "Shopping"}}}
 
   """
   @spec update_entry(t(), id_t(), (entry_t() -> entry_t())) :: t()
@@ -115,11 +115,11 @@ defmodule TodoList do
 
   ## Examples
 
-  iex> todo_list = %TodoList{next_id: 3, entries: %{1 => %{id: 1, date: ~D[2025-12-20], title: "Dentist"}, 2 => %{id: 2, date: ~D[2025-12-22], title: "Shopping"}}}
-  %TodoList{next_id: 3, entries: %{1 => %{id: 1, date: ~D[2025-12-20], title: "Dentist"}, 2 => %{id: 2, date: ~D[2025-12-22], title: "Shopping"}}}
+      iex> todo_list = %TodoList{next_id: 3, entries: %{1 => %{id: 1, date: ~D[2025-12-20], title: "Dentist"}, 2 => %{id: 2, date: ~D[2025-12-22], title: "Shopping"}}}
+      %TodoList{next_id: 3, entries: %{1 => %{id: 1, date: ~D[2025-12-20], title: "Dentist"}, 2 => %{id: 2, date: ~D[2025-12-22], title: "Shopping"}}}
 
-  iex> TodoList.delete_entry(todo_list, 1)
-  %TodoList{next_id: 3, entries: %{2 => %{id: 2, date: ~D[2025-12-22], title: "Shopping"}}}
+      iex> TodoList.delete_entry(todo_list, 1)
+      %TodoList{next_id: 3, entries: %{2 => %{id: 2, date: ~D[2025-12-22], title: "Shopping"}}}
 
   """
   @spec delete_entry(t(), id_t()) :: t()
@@ -150,17 +150,17 @@ defmodule TodoList.CsvImporter do
 
   ## Examples
 
-  iex> TodoList.CsvImporter.import!()
-  %TodoList{next_id: 13, entries: %{1 => %{id: 1, date: ~D[2023-12-19], title: "Dentist"}, ...}}
+      iex> TodoList.CsvImporter.import!()
+      %TodoList{next_id: 13, entries: %{1 => %{id: 1, date: ~D[2023-12-19], title: "Dentist"}, ...}}
 
-  iex> TodoList.CsvImporter.import!("./path-to-no-file.csv")
-  ** (File.Error) could not stream "": no such file or directory
-      (elixir 1.18.4) lib/file/stream.ex:100: anonymous fn/3 in Enumerable.File.Stream.reduce/3
-      (elixir 1.18.4) lib/stream.ex:1557: anonymous fn/5 in Stream.resource/3
-      (elixir 1.18.4) lib/stream.ex:1773: Enumerable.Stream.do_each/4
-      (elixir 1.18.4) lib/enum.ex:1574: Enum.reduce_into_protocol/3
-      (elixir 1.18.4) lib/enum.ex:1558: Enum.into_protocol/2
-      iex:5: (file)
+      iex> TodoList.CsvImporter.import!("./path-to-no-file.csv")
+      ** (File.Error) could not stream "": no such file or directory
+          (elixir 1.18.4) lib/file/stream.ex:100: anonymous fn/3 in Enumerable.File.Stream.reduce/3
+          (elixir 1.18.4) lib/stream.ex:1557: anonymous fn/5 in Stream.resource/3
+          (elixir 1.18.4) lib/stream.ex:1773: Enumerable.Stream.do_each/4
+          (elixir 1.18.4) lib/enum.ex:1574: Enum.reduce_into_protocol/3
+          (elixir 1.18.4) lib/enum.ex:1558: Enum.into_protocol/2
+          iex:5: (file)
 
   """
   @spec import!(String.t()) :: TodoList.t()
