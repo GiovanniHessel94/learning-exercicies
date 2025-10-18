@@ -98,7 +98,7 @@ defmodule TodoList do
   %TodoList{next_id: 3, entries: %{1 => %{id: 1, date: ~D[2025-12-21], title: "Dentist"}, 2 => %{id: 2, date: ~D[2025-12-22], title: "Shopping"}}}
 
   """
-  @spec update_entry(t(), non_neg_integer(), (entry_t() -> entry_t())) :: t()
+  @spec update_entry(t(), id_t(), (entry_t() -> entry_t())) :: t()
   def update_entry(%__MODULE__{entries: entries} = todo_list, entry_id, updater_fun)
       when is_map_key(entries, entry_id),
       do: %__MODULE__{todo_list | entries: Map.update!(entries, entry_id, updater_fun)}
@@ -122,7 +122,7 @@ defmodule TodoList do
   %TodoList{next_id: 3, entries: %{2 => %{id: 2, date: ~D[2025-12-22], title: "Shopping"}}}
 
   """
-  @spec delete_entry(t(), non_neg_integer()) :: t()
+  @spec delete_entry(t(), id_t()) :: t()
   def delete_entry(%__MODULE__{entries: entries} = todo_list, entry_id)
       when is_map_key(entries, entry_id),
       do: Map.update!(todo_list, :entries, &Map.delete(&1, entry_id))
