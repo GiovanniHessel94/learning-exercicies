@@ -20,31 +20,9 @@ defmodule TodoServer do
   ##################
 
   @doc """
-  Adds a new entry to a todo list server.
-
-  ## Parameters
-
-  - `todo_server`: The todo list server pid to add the entry to.
-  - `entry`: The entry to add.
-
-  ## Examples
-
-      iex> todo_server = TodoServer.start()
-      #PID<0.123.0>
-
-      iex> TodoServer.add_entry(todo_server, %{date: ~D[2025-12-20], title: "Dentist"})
-      :ok
-
-  """
-  @spec add_entry(pid(), TodoList.entry_params_t()) :: :ok
-  def add_entry(todo_server, entry) do
-    send(todo_server, {:add_entry, entry})
-
-    :ok
-  end
-
-  @doc """
   Returns the todo list server entries from a given date.
+
+  Returns `{:error, :timeout}` if the entries are not received within 5 seconds.
 
   ## Parameters
 
@@ -75,6 +53,30 @@ defmodule TodoServer do
     after
       5000 -> {:error, :timeout}
     end
+  end
+
+  @doc """
+  Adds a new entry to a todo list server.
+
+  ## Parameters
+
+  - `todo_server`: The todo list server pid to add the entry to.
+  - `entry`: The entry to add.
+
+  ## Examples
+
+      iex> todo_server = TodoServer.start()
+      #PID<0.123.0>
+
+      iex> TodoServer.add_entry(todo_server, %{date: ~D[2025-12-20], title: "Dentist"})
+      :ok
+
+  """
+  @spec add_entry(pid(), TodoList.entry_params_t()) :: :ok
+  def add_entry(todo_server, entry) do
+    send(todo_server, {:add_entry, entry})
+
+    :ok
   end
 
   @doc """
@@ -142,7 +144,7 @@ defmodule TodoServer do
   @spec start() :: pid()
   def start, do: spawn(fn -> loop(TodoList.new()) end)
 
-  @spec loop(TodoList.t()) :: TodoList.t()
+  @spec loop(TodoList.t()) :: no_return()
   defp loop(todo_list) do
     todo_list =
       receive do
