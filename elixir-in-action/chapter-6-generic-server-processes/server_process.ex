@@ -107,6 +107,8 @@ end
 defmodule TodoServer do
   @moduledoc """
   Exercises code from the `Chapter 6 - Generic Server Processes` of the `Elixir In Action` book.
+
+  This implementation is powered by the `ServerProcess` module.
   """
 
   @typedoc """
@@ -241,7 +243,7 @@ defmodule TodoServer do
   def start, do: ServerProcess.start(TodoServer)
 
   @doc """
-  Initializes the todo list server state.
+  Initializes the todo list server state as an empty todo list.
   """
   @spec init() :: TodoList.t()
   def init(), do: TodoList.new()
