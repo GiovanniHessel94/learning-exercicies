@@ -253,8 +253,8 @@ defmodule TodoServer do
 
   ## Parameters
 
-  - `todo_list`: The todo list state from the server.
   - `message`: The call message to handle. Returns response as `{:error, :unsupported_message}` when message is unsupported.
+  - `todo_list`: The todo list state from the server.
 
   ## Examples
 
@@ -285,8 +285,8 @@ defmodule TodoServer do
 
   ## Parameters
 
-  - `todo_list`: The todo list state from the server.
   - `message`: The cast message to handle.
+  - `todo_list`: The todo list state from the server.
 
   ## Examples
 
