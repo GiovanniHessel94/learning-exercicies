@@ -41,7 +41,7 @@ defmodule TodoServer do
 
   ## Examples
 
-      iex> {:ok, todo_server} = GenServer.start(TodoServer, nil)
+      iex> {:ok, todo_server} = TodoServer.start()
       {:ok, #PID<0.123.0>}
 
       iex> TodoServer.add_entry(todo_server, %{date: ~D[2025-12-22], title: "Shopping"})
@@ -70,7 +70,7 @@ defmodule TodoServer do
 
   ## Examples
 
-      iex> {:ok, todo_server} = GenServer.start(TodoServer, nil)
+      iex> {:ok, todo_server} = TodoServer.start()
       {:ok, #PID<0.123.0>}
 
       iex> TodoServer.add_entry(todo_server, %{date: ~D[2025-12-20], title: "Dentist"})
@@ -91,7 +91,7 @@ defmodule TodoServer do
 
   ## Examples
 
-      iex> {:ok, todo_server} = GenServer.start(TodoServer, nil)
+      iex> {:ok, todo_server} = TodoServer.start()
       {:ok, #PID<0.123.0>}
 
       iex> TodoServer.add_entry(todo_server, %{date: ~D[2025-12-22], title: "Shopping"})
@@ -116,7 +116,7 @@ defmodule TodoServer do
 
   ## Examples
 
-      iex> {:ok, todo_server} = GenServer.start(TodoServer, nil)
+      iex> {:ok, todo_server} = TodoServer.start()
       {:ok, #PID<0.123.0>}
 
       iex> TodoServer.add_entry(todo_server, %{date: ~D[2025-12-22], title: "Shopping"})
@@ -134,6 +134,12 @@ defmodule TodoServer do
   ##################
   ##  Server API  ##
   ##################
+
+  @doc """
+  Starts a new todo list server.
+  """
+  @spec start() :: GenServer.on_start()
+  def start, do: GenServer.start(__MODULE__, nil)
 
   @doc """
   Initializes the todo list server state as an empty todo list.
