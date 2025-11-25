@@ -206,11 +206,15 @@ defmodule Todo.Server do
   end
 
   def handle_cast({:update_entry, entry_id, updater_fun}, {name, todo_list}) do
-    {:noreply, {name, Todo.List.update_entry(todo_list, entry_id, updater_fun)}}
+    todo_list = Todo.List.update_entry(todo_list, entry_id, updater_fun)
+    Todo.Database.store(name, todo_list)
+    {:noreply, {name, todo_list}}
   end
 
   def handle_cast({:delete_entry, entry_id}, {name, todo_list}) do
-    {:noreply, {name, Todo.List.delete_entry(todo_list, entry_id)}}
+    todo_list = Todo.List.delete_entry(todo_list, entry_id)
+    Todo.Database.store(name, todo_list)
+    {:noreply, {name, todo_list}}
   end
 
   def handle_cast(_message, {name, todo_list}) do
