@@ -154,12 +154,12 @@ defmodule TodoServer do
   ## Parameters
 
   - `message`: The call message to handle. Reply `{:error, :unsupported_message}` when message is unsupported.
-  - `from`: The caller pid. Ignored for the moment.
+  - `from`: The caller pid and term tuple. Ignored for the moment.
   - `todo_list`: The todo list state from the server.
 
   """
   @impl GenServer
-  @spec handle_call(call_message_t(), pid(), TodoList.t()) ::
+  @spec handle_call(call_message_t(), {pid(), term()}, TodoList.t()) ::
           {
             :reply,
             response :: list(TodoList.entry_t()) | {:error, :unsupported_message},
