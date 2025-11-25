@@ -1,12 +1,13 @@
 defmodule Todo.Database do
   @moduledoc """
-  Database module responsible for storing an retrieving data from the file system.
+  Database module responsible for starting a pool of database workers and delegating operations to them.
   All data is stored under the `./persist` folder.
   """
 
   use GenServer
 
   @db_folder "./persist"
+  @pool_size 3
 
   ##################
   ##  Client API  ##
@@ -14,6 +15,8 @@ defmodule Todo.Database do
 
   @doc """
   Stores data in the file system under the given key.
+
+  Internally call the database server to obtain the worker pid for the given key.
 
   ## Parameters
 
@@ -27,10 +30,16 @@ defmodule Todo.Database do
 
   """
   @spec store(String.t(), term()) :: :ok
-  def store(key, data), do: GenServer.cast(__MODULE__, {:store, key, data})
+  def store(key, data) do
+    __MODULE__
+    |> GenServer.call({:worker, key})
+    |> GenServer.cast({:store, key, data})
+  end
 
   @doc """
   Retrieves data from the file system under the given key.
+
+  Internally call the database server to obtain the worker pid for the given key.
 
   ## Parameters
 
@@ -46,7 +55,11 @@ defmodule Todo.Database do
 
   """
   @spec get(String.t()) :: term() | nil
-  def get(key), do: GenServer.call(__MODULE__, {:get, key})
+  def get(key) do
+    __MODULE__
+    |> GenServer.call({:worker, key})
+    |> GenServer.call({:get, key})
+  end
 
   ##################
   ##  Server API  ##
@@ -59,37 +72,19 @@ defmodule Todo.Database do
   def start, do: GenServer.start(__MODULE__, nil, name: __MODULE__)
 
   @doc """
-  Initializes the database server state as an empty map.
+  Initializes the database server state.
 
-  Creates the database folder if it doesn't exist.
+  It will also:
+  - Create the database folder if it doesn't exist.
+  - Start a pool of database workers.
+
   """
   @impl GenServer
   @spec init(term()) :: {:ok, nil}
   def init(_init_arg) do
     File.mkdir_p!(@db_folder)
-    {:ok, nil}
-  end
 
-  @doc """
-  Handles a cast message.
-
-  ## Parameters
-
-  - `message`: The cast message to handle. Currently supports only `{:store, key, data}`.
-  - `state`: The database server state.
-
-  """
-  @impl GenServer
-  @spec handle_cast(term(), nil) :: {:noreply, nil}
-  def handle_cast({:store, key, data}, state) do
-    # Using `:erlang.term_to_binary/1` makes the code vulnerable to Remote Code Execution (RCE) attacks.
-    spawn(fn ->
-      key
-      |> file_name()
-      |> File.write!(:erlang.term_to_binary(data))
-    end)
-
-    {:noreply, state}
+    Enum.reduce_while(1..@pool_size, {:ok, %{}}, &start_worker/2)
   end
 
   @doc """
@@ -97,27 +92,24 @@ defmodule Todo.Database do
 
   ## Parameters
 
-  - `message`: The call message to handle. Currently supports only `{:get, key}`.
-  - `from`: The caller pid and term tuple.
-  - `state`: The database server state.
+  - `message`: The call message to handle. Currently supports only `{:worker, key}`.
+  - `from`: The caller pid and term tuple. Ignored from the moment.
+  - `state`: The database server state, i.e. the pool map.
 
   """
   @impl GenServer
-  @spec handle_call(term(), {pid(), term()}, nil) :: {:noreply, nil}
-  def handle_call({:get, key}, from, state) do
-    spawn(fn ->
-      data =
-        case File.read(file_name(key)) do
-          {:ok, content} -> :erlang.binary_to_term(content)
-          {:error, _reason} -> nil
-        end
+  @spec handle_call(term(), {pid(), term()}, map()) :: {:reply, pid(), map()}
+  def handle_call({:worker, key}, _from, state) do
+    worker = Map.fetch!(state, :erlang.phash2(key, @pool_size))
 
-      GenServer.reply(from, data)
-    end)
-
-    {:noreply, state}
+    {:reply, worker, state}
   end
 
-  @spec file_name(String.t()) :: String.t()
-  defp file_name(key), do: Path.join(@db_folder, to_string(key))
+  @spec start_worker(integer(), {:ok, map()}) :: {:cont, {:ok, map()}} | {:halt, {:stop, term()}}
+  defp start_worker(index, {:ok, acc}) do
+    case Todo.DatabaseWorker.start(@db_folder) do
+      {:ok, worker} -> {:cont, {:ok, Map.put(acc, index - 1, worker)}}
+      {:error, reason} -> {:halt, {:stop, reason}}
+    end
+  end
 end
