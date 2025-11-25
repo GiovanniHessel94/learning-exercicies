@@ -354,7 +354,7 @@ defmodule TodoList do
 
   """
   @spec new() :: t()
-  def new(), do: %__MODULE__{}
+  def new, do: %__MODULE__{}
 
   @doc """
   Adds a new entry to a todo list.
