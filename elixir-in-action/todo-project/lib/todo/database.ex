@@ -33,7 +33,7 @@ defmodule Todo.Database do
   def store(key, data) do
     __MODULE__
     |> GenServer.call({:worker, key})
-    |> GenServer.cast({:store, key, data})
+    |> Todo.DatabaseWorker.store(key, data)
   end
 
   @doc """
@@ -58,7 +58,7 @@ defmodule Todo.Database do
   def get(key) do
     __MODULE__
     |> GenServer.call({:worker, key})
-    |> GenServer.call({:get, key})
+    |> Todo.DatabaseWorker.get(key)
   end
 
   ##################
