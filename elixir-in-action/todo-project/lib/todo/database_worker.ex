@@ -54,8 +54,8 @@ defmodule Todo.DatabaseWorker do
   @doc """
   Starts a new database worker.
   """
-  @spec start(String.t()) :: GenServer.on_start()
-  def start(db_folder), do: GenServer.start(__MODULE__, db_folder)
+  @spec start_link(String.t()) :: GenServer.on_start()
+  def start_link(db_folder), do: GenServer.start_link(__MODULE__, db_folder)
 
   @doc """
   Initializes the database worker state with the given database folder.

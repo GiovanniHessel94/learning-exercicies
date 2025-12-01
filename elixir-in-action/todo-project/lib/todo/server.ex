@@ -138,8 +138,8 @@ defmodule Todo.Server do
   @doc """
   Starts a new todo list server.
   """
-  @spec start(String.t()) :: GenServer.on_start()
-  def start(name), do: GenServer.start(__MODULE__, name)
+  @spec start_link(String.t()) :: GenServer.on_start()
+  def start_link(name), do: GenServer.start_link(__MODULE__, name)
 
   @doc """
   Initializes the todo list server state as an empty todo list.

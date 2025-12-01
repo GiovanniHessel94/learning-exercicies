@@ -39,22 +39,21 @@ defmodule Todo.Cache do
   ##################
 
   @doc """
-  Starts a new cache and database servers.
+  Starts a new cache server.
   """
-  @spec start() :: GenServer.on_start()
-  def start do
-    # Temporary approach to start the database server.
-    Todo.Database.start()
-
-    GenServer.start(__MODULE__, nil, name: __MODULE__)
-  end
+  @spec start_link(term()) :: GenServer.on_start()
+  def start_link(_init_arg), do: GenServer.start_link(__MODULE__, nil, name: __MODULE__)
 
   @doc """
-  Initializes the cache server state as an empty map.
+  Initializes the cache server state as an empty map and starts the database server.
   """
   @impl GenServer
   @spec init(term()) :: {:ok, map()}
-  def init(_init_arg), do: {:ok, %{}}
+  def init(_init_arg) do
+    # Temporary approach to start the database server.
+    Todo.Database.start_link(nil)
+    {:ok, %{}}
+  end
 
   @doc """
   Handles a call message.
@@ -77,7 +76,7 @@ defmodule Todo.Cache do
 
   @spec start_or_retrieve_server(nil | pid(), String.t()) :: {pid(), pid()}
   defp start_or_retrieve_server(nil, list_name) do
-    {:ok, server} = Todo.Server.start(list_name)
+    {:ok, server} = Todo.Server.start_link(list_name)
     {server, server}
   end
 

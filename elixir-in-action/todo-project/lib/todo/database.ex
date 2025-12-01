@@ -68,8 +68,8 @@ defmodule Todo.Database do
   @doc """
   Starts a new database server.
   """
-  @spec start() :: GenServer.on_start()
-  def start, do: GenServer.start(__MODULE__, nil, name: __MODULE__)
+  @spec start_link(term()) :: GenServer.on_start()
+  def start_link(_init_arg), do: GenServer.start_link(__MODULE__, nil, name: __MODULE__)
 
   @doc """
   Initializes the database server state.
@@ -107,7 +107,7 @@ defmodule Todo.Database do
 
   @spec start_worker(integer(), {:ok, map()}) :: {:cont, {:ok, map()}} | {:halt, {:stop, term()}}
   defp start_worker(index, {:ok, acc}) do
-    case Todo.DatabaseWorker.start(@db_folder) do
+    case Todo.DatabaseWorker.start_link(@db_folder) do
       {:ok, worker} -> {:cont, {:ok, Map.put(acc, index - 1, worker)}}
       {:error, reason} -> {:halt, {:stop, reason}}
     end
