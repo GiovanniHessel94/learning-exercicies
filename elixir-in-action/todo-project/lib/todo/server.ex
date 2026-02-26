@@ -5,7 +5,7 @@ defmodule Todo.Server do
   This implementation is powered by the `GenServer` module.
   """
 
-  use GenServer
+  use GenServer, restart: :temporary
 
   @typedoc """
   The `Todo.Server` supported call message types.
@@ -139,19 +139,19 @@ defmodule Todo.Server do
   Starts a new todo list server.
   """
   @spec start_link(String.t()) :: GenServer.on_start()
-  def start_link(name), do: GenServer.start_link(__MODULE__, name)
+  def start_link(name), do: GenServer.start_link(__MODULE__, name, name: via_tuple(name))
 
   @doc """
-  Initializes the todo list server state as an empty todo list.
-
-  ...
+  Initializes the todo list server state and invokes the continue callback.
   """
   @impl GenServer
   @spec init(String.t()) :: {:ok, {String.t(), nil}, {:continue, :init}}
   def init(name), do: {:ok, {name, nil}, {:continue, :init}}
 
   @doc """
-  ...
+  Handles the continue callback.
+
+  Sets the todo list server state to the database entry or a new empty list.
   """
   @impl GenServer
   @spec handle_continue(:init, {String.t(), nil}) :: {:noreply, {String.t(), Todo.List.t()}}
@@ -220,4 +220,7 @@ defmodule Todo.Server do
   def handle_cast(_message, {name, todo_list}) do
     {:noreply, {name, todo_list}}
   end
+
+  @spec via_tuple(String.t()) :: {:via, Registry, {__MODULE__, String.t()}}
+  defp via_tuple(name), do: Todo.RegistryProcess.via_tuple({__MODULE__, name})
 end

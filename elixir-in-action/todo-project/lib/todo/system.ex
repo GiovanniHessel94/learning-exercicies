@@ -1,6 +1,6 @@
 defmodule Todo.System do
   @moduledoc """
-  System module responsible for starting and supervising the entire to-do system.
+  System supervisor responsible for starting and supervising the entire to-do system.
   """
 
   use Supervisor
@@ -8,7 +8,7 @@ defmodule Todo.System do
   @doc """
   Starts the to-do system.
   """
-  @spec start_link() :: Supervisor.on_start()
+  @spec start_link :: Supervisor.on_start()
   def start_link, do: Supervisor.start_link(__MODULE__, nil)
 
   @doc """
@@ -16,5 +16,8 @@ defmodule Todo.System do
   """
   @impl Supervisor
   @spec init(term()) :: {:ok, term()}
-  def init(_init_arg), do: Supervisor.init([Todo.Cache], strategy: :one_for_one)
+  def init(_init_arg), do: Supervisor.init(children(), strategy: :one_for_one)
+
+  @spec children() :: [module()]
+  defp children, do: [Todo.RegistryProcess, Todo.Database, Todo.Cache]
 end

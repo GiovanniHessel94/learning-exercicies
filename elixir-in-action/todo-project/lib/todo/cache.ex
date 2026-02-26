@@ -4,8 +4,6 @@ defmodule Todo.Cache do
   It starts the `Todo.Server` process if it doesn't exist for the given list name.
   """
 
-  use GenServer
-
   ##################
   ##  Client API  ##
   ##################
@@ -31,7 +29,11 @@ defmodule Todo.Cache do
   """
   @spec start_or_retrieve_server_by_list_name(String.t()) :: {:ok, pid()}
   def start_or_retrieve_server_by_list_name(list_name) do
-    GenServer.call(__MODULE__, {:start_or_retrieve_server, list_name})
+    # Temporary approach to starting a list server.
+    case start_server(list_name) do
+      {:ok, pid} -> {:ok, pid}
+      {:error, {:already_started, pid}} -> {:ok, pid}
+    end
   end
 
   ##################
@@ -39,46 +41,23 @@ defmodule Todo.Cache do
   ##################
 
   @doc """
-  Starts a new cache server.
+  Starts the cache supervisor.
   """
-  @spec start_link(term()) :: GenServer.on_start()
-  def start_link(_init_arg), do: GenServer.start_link(__MODULE__, nil, name: __MODULE__)
-
-  @doc """
-  Initializes the cache server state as an empty map and starts the database server.
-  """
-  @impl GenServer
-  @spec init(term()) :: {:ok, map()}
-  def init(_init_arg) do
-    # Temporary approach to start the database server.
-    Todo.Database.start_link(nil)
-    {:ok, %{}}
+  @spec start_link :: Supervisor.on_start()
+  def start_link do
+    DynamicSupervisor.start_link(name: __MODULE__, strategy: :one_for_one)
   end
 
   @doc """
-  Handles a call message.
-
-  ## Parameters
-
-  - `message`: The call message to handle. Currently supports only `{:start_or_retrieve_server, list_name}`.
-  - `from`: The caller pid and term tuple. Ignored for the moment.
-  - `state`: The cache server state.
-
+  Builds the child spec for the cache supervisor.
   """
-  @impl GenServer
-  @spec handle_call(term(), {pid(), term()}, map()) :: {:reply, term(), map()}
-  def handle_call({:start_or_retrieve_server, list_name}, _from, state) do
-    {server, state} =
-      Map.get_and_update(state, list_name, &start_or_retrieve_server(&1, list_name))
-
-    {:reply, server, state}
+  @spec child_spec(term()) :: Supervisor.child_spec()
+  def child_spec(_opts) do
+    %{id: __MODULE__, start: {__MODULE__, :start_link, []}, type: :supervisor}
   end
 
-  @spec start_or_retrieve_server(nil | pid(), String.t()) :: {pid(), pid()}
-  defp start_or_retrieve_server(nil, list_name) do
-    {:ok, server} = Todo.Server.start_link(list_name)
-    {server, server}
+  @spec start_server(String.t()) :: {:ok, pid()} | {:error, term()}
+  defp start_server(list_name) do
+    DynamicSupervisor.start_child(__MODULE__, {Todo.Server, list_name})
   end
-
-  defp start_or_retrieve_server(server, _list_name), do: {server, server}
 end
