@@ -19,5 +19,13 @@ defmodule Todo.System do
   def init(_init_arg), do: Supervisor.init(children(), strategy: :one_for_one)
 
   @spec children() :: [module()]
-  defp children, do: [Todo.RegistryProcess, Todo.Database, Todo.Cache]
+  defp children do
+    [
+      {Task.Supervisor, name: Todo.Task.Supervisor},
+      Todo.Metrics,
+      Todo.RegistryProcess,
+      Todo.Database,
+      Todo.Cache
+    ]
+  end
 end

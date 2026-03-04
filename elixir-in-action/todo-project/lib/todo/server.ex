@@ -7,6 +7,13 @@ defmodule Todo.Server do
 
   use GenServer, restart: :temporary
 
+  @expiry_idle_timeout :timer.seconds(10)
+
+  @typedoc """
+  The `Todo.Server` state type.
+  """
+  @type state_t() :: {String.t(), Todo.List.t()}
+
   @typedoc """
   The `Todo.Server` supported call message types.
 
@@ -154,10 +161,10 @@ defmodule Todo.Server do
   Sets the todo list server state to the database entry or a new empty list.
   """
   @impl GenServer
-  @spec handle_continue(:init, {String.t(), nil}) :: {:noreply, {String.t(), Todo.List.t()}}
+  @spec handle_continue(:init, {String.t(), nil}) :: {:noreply, state_t(), non_neg_integer()}
   def handle_continue(:init, {name, nil}) do
     todo_list = Todo.Database.get(name) || Todo.List.new()
-    {:noreply, {name, todo_list}}
+    {:noreply, {name, todo_list}, @expiry_idle_timeout}
   end
 
   @doc """
@@ -171,18 +178,19 @@ defmodule Todo.Server do
 
   """
   @impl GenServer
-  @spec handle_call(call_message_t(), {pid(), term()}, {String.t(), Todo.List.t()}) ::
+  @spec handle_call(call_message_t(), {pid(), term()}, state_t()) ::
           {
             :reply,
             response :: list(Todo.List.entry_t()) | {:error, :unsupported_message},
-            {String.t(), Todo.List.t()}
+            state_t(),
+            non_neg_integer()
           }
   def handle_call({:entries, date}, _from, {name, todo_list}) do
-    {:reply, Todo.List.entries(todo_list, date), {name, todo_list}}
+    {:reply, Todo.List.entries(todo_list, date), {name, todo_list}, @expiry_idle_timeout}
   end
 
-  def handle_call(_message, _from, {name, todo_list}) do
-    {:reply, {:error, :unsupported_message}, {name, todo_list}}
+  def handle_call(_message, _from, {_name, _todo_list} = state) do
+    {:reply, {:error, :unsupported_message}, state, @expiry_idle_timeout}
   end
 
   @doc """
@@ -195,30 +203,42 @@ defmodule Todo.Server do
 
   """
   @impl GenServer
-  @spec handle_cast(
-          cast_message_t(),
-          {String.t(), Todo.List.t()}
-        ) :: {:noreply, {String.t(), Todo.List.t()}}
+  @spec handle_cast(cast_message_t(), state_t()) :: {:noreply, state_t(), non_neg_integer()}
   def handle_cast({:add_entry, entry}, {name, todo_list}) do
     todo_list = Todo.List.add_entry(todo_list, entry)
     Todo.Database.store(name, todo_list)
-    {:noreply, {name, todo_list}}
+    {:noreply, {name, todo_list}, @expiry_idle_timeout}
   end
 
   def handle_cast({:update_entry, entry_id, updater_fun}, {name, todo_list}) do
     todo_list = Todo.List.update_entry(todo_list, entry_id, updater_fun)
     Todo.Database.store(name, todo_list)
-    {:noreply, {name, todo_list}}
+    {:noreply, {name, todo_list}, @expiry_idle_timeout}
   end
 
   def handle_cast({:delete_entry, entry_id}, {name, todo_list}) do
     todo_list = Todo.List.delete_entry(todo_list, entry_id)
     Todo.Database.store(name, todo_list)
-    {:noreply, {name, todo_list}}
+    {:noreply, {name, todo_list}, @expiry_idle_timeout}
   end
 
-  def handle_cast(_message, {name, todo_list}) do
-    {:noreply, {name, todo_list}}
+  def handle_cast(_message, {_name, _todo_list} = state) do
+    {:noreply, state, @expiry_idle_timeout}
+  end
+
+  @doc """
+  Handles the `@expiry_idle_timeout` message.
+
+  ## Parameters
+
+  - `message`: The `:timeout` message to handle.
+  - `state`: The todo list state from the server.
+
+  """
+  @impl GenServer
+  @spec handle_info(:timeout, state_t()) :: {:noreply, state_t()}
+  def handle_info(:timeout, {_name, _todo_list} = state) do
+    {:stop, :normal, state}
   end
 
   @spec via_tuple(String.t()) :: {:via, Registry, {__MODULE__, String.t()}}
