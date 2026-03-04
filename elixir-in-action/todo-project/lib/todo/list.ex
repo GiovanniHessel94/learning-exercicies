@@ -1,6 +1,6 @@
 defmodule Todo.List do
   @moduledoc """
-  Exercises code from the `Chapter 4 - Data Abstraction` of the `Elixir In Action` book.
+  List module responsible for managing todo lists.
   """
 
   defstruct next_id: 1, entries: %{}

@@ -1,6 +1,6 @@
 defmodule Todo.Cache do
   @moduledoc """
-  Cache module responsible for mapping todo list names to `Todo.Server` processes.
+  Cache supervisor responsible for mapping todo list names to `Todo.Server` processes.
   It starts the `Todo.Server` process if it doesn't exist for the given list name.
   """
 

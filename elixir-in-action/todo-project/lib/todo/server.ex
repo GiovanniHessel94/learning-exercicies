@@ -1,6 +1,6 @@
 defmodule Todo.Server do
   @moduledoc """
-  Exercises code from the `Chapter 6 - Generic Server Processes` of the `Elixir In Action` book.
+  Server responsible for managing todo lists.
 
   This implementation is powered by the `GenServer` module.
   """
