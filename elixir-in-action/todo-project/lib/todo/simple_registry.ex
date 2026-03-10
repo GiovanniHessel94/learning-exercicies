@@ -79,7 +79,7 @@ defmodule Todo.SimpleRegistry do
   Initializes the simple registry server state, sets the trap exits flag and creates the registry ETS table.
   """
   @impl GenServer
-  @spec init(term()) :: {:ok, term(), {:continue, :init}}
+  @spec init(term()) :: {:ok, nil}
   def init(_init_arg) do
     Process.flag(:trap_exit, true)
 

@@ -236,11 +236,12 @@ defmodule Todo.Server do
 
   """
   @impl GenServer
-  @spec handle_info(:timeout, state_t()) :: {:noreply, state_t()}
+  @spec handle_info(:timeout, state_t()) :: {:stop, :normal, state_t()}
   def handle_info(:timeout, {_name, _todo_list} = state) do
     {:stop, :normal, state}
   end
 
-  @spec via_tuple(String.t()) :: {:via, Registry, {__MODULE__, String.t()}}
+  @spec via_tuple(String.t()) ::
+          {:via, Registry, {Todo.RegistryProcess, {__MODULE__, String.t()}}}
   defp via_tuple(name), do: Todo.RegistryProcess.via_tuple({__MODULE__, name})
 end
