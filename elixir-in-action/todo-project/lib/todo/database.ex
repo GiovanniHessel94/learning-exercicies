@@ -4,7 +4,6 @@ defmodule Todo.Database do
   All data is stored under the `./persist` folder.
   """
 
-  @db_folder "./persist"
   @pool_size 3
 
   ##################
@@ -27,9 +26,7 @@ defmodule Todo.Database do
   """
   @spec store(String.t(), term()) :: :ok
   def store(key, data) do
-    key
-    |> choose_worker()
-    |> Todo.DatabaseWorker.store(key, data)
+    :poolboy.transaction(__MODULE__, &Todo.DatabaseWorker.store(&1, key, data))
   end
 
   @doc """
@@ -50,9 +47,7 @@ defmodule Todo.Database do
   """
   @spec get(String.t()) :: term() | nil
   def get(key) do
-    key
-    |> choose_worker()
-    |> Todo.DatabaseWorker.get(key)
+    :poolboy.transaction(__MODULE__, &Todo.DatabaseWorker.get(&1, key))
   end
 
   ##################
@@ -60,35 +55,23 @@ defmodule Todo.Database do
   ##################
 
   @doc """
-  Starts the database supervisor.
-
-  It will:
-  - Create the database folder if it doesn't exist.
-  - Start a pool of database workers as children.
-
-  """
-  @spec start_link :: Supervisor.on_start()
-  def start_link do
-    File.mkdir_p!(@db_folder)
-
-    1..@pool_size
-    |> Enum.map(&worker_spec/1)
-    |> Supervisor.start_link(strategy: :one_for_one)
-  end
-
-  @doc """
   Builds the child spec for the database supervisor.
   """
-  @spec child_spec(term()) :: Supervisor.child_spec()
+  @spec child_spec(term()) :: :supervisor.child_spec()
   def child_spec(_opts) do
-    %{id: __MODULE__, start: {__MODULE__, :start_link, []}, type: :supervisor}
+    db_folder = db_folder()
+    File.mkdir_p!(db_folder)
+
+    :poolboy.child_spec(
+      __MODULE__,
+      [
+        name: {:local, __MODULE__},
+        worker_module: Todo.DatabaseWorker,
+        size: @pool_size
+      ],
+      db_folder: db_folder
+    )
   end
 
-  @spec choose_worker(String.t()) :: integer()
-  defp choose_worker(key), do: :erlang.phash2(key, @pool_size) + 1
-
-  @spec worker_spec(integer()) :: Supervisor.child_spec()
-  defp worker_spec(worker_id) do
-    Supervisor.child_spec({Todo.DatabaseWorker, {@db_folder, worker_id}}, id: worker_id)
-  end
+  defp db_folder, do: Application.fetch_env!(:todo, :db_folder)
 end

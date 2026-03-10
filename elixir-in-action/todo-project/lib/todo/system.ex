@@ -25,7 +25,8 @@ defmodule Todo.System do
       Todo.Metrics,
       Todo.RegistryProcess,
       Todo.Database,
-      Todo.Cache
+      Todo.Cache,
+      Todo.Web
     ]
   end
 end

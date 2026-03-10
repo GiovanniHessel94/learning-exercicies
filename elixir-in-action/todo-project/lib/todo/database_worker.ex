@@ -14,38 +14,38 @@ defmodule Todo.DatabaseWorker do
 
   ## Parameters
 
-  - `worker_id`: The database worker ID.
+  - `pid`: The database worker PID.
   - `key`: The key to store the data under.
   - `data`: The data to store.
 
   ## Examples
 
-      iex> Todo.DatabaseWorker.store("Bob's list",  %TodoList{next_id: 2, entries: %{1 => %{id: 1, date: ~D[2025-12-20], title: "Dentist"}}})
+      iex> Todo.DatabaseWorker.store(pid, "Bob's list",  %TodoList{next_id: 2, entries: %{1 => %{id: 1, date: ~D[2025-12-20], title: "Dentist"}}})
       :ok
 
   """
-  @spec store(integer(), String.t(), term()) :: :ok
-  def store(worker_id, key, data), do: GenServer.cast(via_tuple(worker_id), {:store, key, data})
+  @spec store(pid(), String.t(), term()) :: :ok
+  def store(pid, key, data), do: GenServer.cast(pid, {:store, key, data})
 
   @doc """
   Retrieves data from the file system under the given key.
 
   ## Parameters
 
-  - `worker_id`: The database worker ID.
+  - `pid`: The database worker PID.
   - `key`: The key to retrieve the data from.
 
   ## Examples
 
-      iex> Todo.DatabaseWorker.get(worker, "Bob's list")
+      iex> Todo.DatabaseWorker.get(pid, "Bob's list")
       %{next_id: 2, entries: %{1 => %{id: 1, date: ~D[2025-12-20], title: "Dentist"}}}
 
-      iex> Todo.DatabaseWorker.get(worker, "Alice's list")
+      iex> Todo.DatabaseWorker.get(pid, "Alice's list")
       nil
 
   """
-  @spec get(integer(), String.t()) :: term() | nil
-  def get(worker_id, key), do: GenServer.call(via_tuple(worker_id), {:get, key})
+  @spec get(pid(), String.t()) :: term() | nil
+  def get(pid, key), do: GenServer.call(pid, {:get, key})
 
   ##################
   ##  Server API  ##
@@ -54,10 +54,8 @@ defmodule Todo.DatabaseWorker do
   @doc """
   Starts a new database worker.
   """
-  @spec start_link({String.t(), integer()}) :: GenServer.on_start()
-  def start_link({db_folder, worker_id}) do
-    GenServer.start_link(__MODULE__, db_folder, name: via_tuple(worker_id))
-  end
+  @spec start_link(keyword()) :: GenServer.on_start()
+  def start_link(opts), do: GenServer.start_link(__MODULE__, opts[:db_folder])
 
   @doc """
   Initializes the database worker state with the given database folder.
@@ -111,9 +109,6 @@ defmodule Todo.DatabaseWorker do
 
     {:noreply, state}
   end
-
-  @spec via_tuple(integer()) :: {:via, Registry, {__MODULE__, integer()}}
-  defp via_tuple(worker_id), do: Todo.RegistryProcess.via_tuple({__MODULE__, worker_id})
 
   @spec file_name(String.t(), String.t()) :: String.t()
   defp file_name(key, db_folder), do: Path.join(db_folder, to_string(key))
