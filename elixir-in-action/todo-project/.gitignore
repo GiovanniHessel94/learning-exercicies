@@ -21,3 +21,10 @@ todo-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+# Ignore the .env file
+.env
+
+# Ignore the persist folders
+persist/
+persist_test/
