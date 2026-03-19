@@ -25,7 +25,7 @@ defmodule Todo.DatabaseWorker do
 
   """
   @spec store(pid(), String.t(), term()) :: :ok
-  def store(pid, key, data), do: GenServer.cast(pid, {:store, key, data})
+  def store(pid, key, data), do: GenServer.call(pid, {:store, key, data})
 
   @doc """
   Retrieves data from the file system under the given key.
@@ -65,38 +65,27 @@ defmodule Todo.DatabaseWorker do
   def init(db_folder), do: {:ok, db_folder}
 
   @doc """
-  Handles a cast message.
-
-  ## Parameters
-
-  - `message`: The cast message to handle. Currently supports only `{:store, key, data}`.
-  - `state`: The database worker state, i.e. the database folder.
-
-  """
-  @impl GenServer
-  @spec handle_cast(term(), String.t()) :: {:noreply, String.t()}
-  def handle_cast({:store, key, data}, state) do
-    # Using `:erlang.term_to_binary/1` makes the code vulnerable to Remote Code Execution (RCE) attacks.
-    key
-    |> file_name(state)
-    |> File.write!(:erlang.term_to_binary(data))
-
-    {:noreply, state}
-  end
-
-  @doc """
   Handles a call message.
 
   ## Parameters
 
-  - `message`: The call message to handle. Currently supports only `{:get, key}`.
+  - `message`: The call message to handle. Currently supports only `{:store, key, data}` and `{:get, key}`.
   - `from`: The caller pid and term tuple.
   - `state`: The database worker state, i.e. the database folder.
 
   """
   @impl GenServer
-  @spec handle_call(term(), {pid(), term()}, String.t()) :: {:noreply, String.t()}
-  def handle_call({:get, key}, from, state) do
+  @spec handle_call(term(), {pid(), term()}, String.t()) :: {:reply, term(), String.t()}
+  def handle_call({:store, key, data}, _from, state) do
+    # Using `:erlang.term_to_binary/1` makes the code vulnerable to Remote Code Execution (RCE) attacks.
+    key
+    |> file_name(state)
+    |> File.write!(:erlang.term_to_binary(data))
+
+    {:reply, :ok, state}
+  end
+
+  def handle_call({:get, key}, _from, state) do
     file_name = file_name(key, state)
 
     data =
@@ -105,9 +94,7 @@ defmodule Todo.DatabaseWorker do
         {:error, _reason} -> nil
       end
 
-    GenServer.reply(from, data)
-
-    {:noreply, state}
+    {:reply, data, state}
   end
 
   @spec file_name(String.t(), String.t()) :: String.t()

@@ -29,11 +29,7 @@ defmodule Todo.Cache do
   """
   @spec start_or_retrieve_server_by_list_name(String.t()) :: pid()
   def start_or_retrieve_server_by_list_name(list_name) do
-    # Temporary approach to starting a list server.
-    case start_server(list_name) do
-      {:ok, pid} -> pid
-      {:error, {:already_started, pid}} -> pid
-    end
+    Todo.Server.whereis(list_name) || start_server(list_name)
   end
 
   ##################
@@ -58,6 +54,9 @@ defmodule Todo.Cache do
 
   @spec start_server(String.t()) :: {:ok, pid()} | {:error, term()}
   defp start_server(list_name) do
-    DynamicSupervisor.start_child(__MODULE__, {Todo.Server, list_name})
+    case DynamicSupervisor.start_child(__MODULE__, {Todo.Server, list_name}) do
+      {:ok, pid} -> pid
+      {:error, {:already_started, pid}} -> pid
+    end
   end
 end

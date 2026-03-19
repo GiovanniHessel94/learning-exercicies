@@ -16,4 +16,14 @@ db_folder =
     System.get_env("TODO_DB_FOLDER", "./persist")
   end
 
-config :todo, http_port: String.to_integer(http_port), db_folder: db_folder
+server_expiry_idle_timeout =
+  if is_test do
+    System.get_env("TODO_SERVER_EXPIRY_TEST", "10")
+  else
+    System.get_env("TODO_SERVER_EXPIRY", "10")
+  end
+
+config :todo,
+  http_port: String.to_integer(http_port),
+  db_folder: db_folder,
+  server_expiry_idle_timeout: String.to_integer(server_expiry_idle_timeout)

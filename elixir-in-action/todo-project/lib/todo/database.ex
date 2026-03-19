@@ -11,7 +11,7 @@ defmodule Todo.Database do
   ##################
 
   @doc """
-  Stores data in the file system under the given key.
+  Stores data in the file system of all nodes under the given key.
 
   ## Parameters
 
@@ -26,6 +26,34 @@ defmodule Todo.Database do
   """
   @spec store(String.t(), term()) :: :ok
   def store(key, data) do
+    {
+      _results,
+      failing_nodes
+    } = :rpc.multicall(__MODULE__, :store_local, [key, data], :timer.seconds(5))
+
+    if not Enum.empty?(failing_nodes) do
+      IO.puts("Store failed on nodes: #{Enum.join(failing_nodes, ", ")}")
+    end
+
+    :ok
+  end
+
+  @doc """
+  Stores data in the local file system under the given key.
+
+  ## Parameters
+
+  - `key`: The key to store the data under.
+  - `data`: The data to store.
+
+  ## Examples
+
+      iex> Todo.Database.store_local("Bob's list",  %TodoList{next_id: 2, entries: %{1 => %{id: 1, date: ~D[2025-12-20], title: "Dentist"}}})
+      :ok
+
+  """
+  @spec store_local(String.t(), term()) :: :ok
+  def store_local(key, data) do
     :poolboy.transaction(__MODULE__, &Todo.DatabaseWorker.store(&1, key, data))
   end
 
