@@ -19,6 +19,12 @@ defmodule Todo.MixProject do
     ]
   end
 
+  def cli do
+    [
+      preferred_envs: [release: :prod]
+    ]
+  end
+
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
